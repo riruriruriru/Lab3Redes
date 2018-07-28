@@ -90,12 +90,12 @@ def third_menu(rate, data, freq, spec, time, im, t, info):
         elif user_input=="2":
             FM_analog_modulation(rate, data, time, 1, t, info)
             #option = fourth_menu(rate, f_data, f_data2, f_data3, "High Pass")                        
-        elif int(user_input)=="3":
+        elif user_input=="3":
             FM_analog_modulation(rate, data, time, 1.25, t, info)
             #option = fourth_menu(rate, f_data, f_data2, f_data3, "Band Pass")                 
-        elif int(user_input)=="4":
+        elif user_input=="4":
             return 0
-        elif int(user_input)=="5":
+        elif user_input=="5":
             return 2
         else:
             print('Ingrese una opcion valida')
@@ -120,13 +120,13 @@ def third_menu_am(rate, data, freq, spec, time, im, t, info):
             fc,  newTime, resultado, beta, data2 = AM_analog_modulation(rate, data, time, 1, t, info)
             AM_demodulation_menu(fc,  newTime, resultado, beta, data2, rate, info)
             #option = fourth_menu(rate, f_data, f_data2, f_data3, "High Pass")                        
-        elif int(user_input)=="3":
+        elif user_input=="3":
             fc,  newTime, resultado, beta, data2 = AM_analog_modulation(rate, data, time, 1.25, t, info)
             AM_demodulation_menu(fc,  newTime, resultado, beta, data2, rate, info)
             #option = fourth_menu(rate, f_data, f_data2, f_data3, "Band Pass")                 
-        elif int(user_input)=="4":
+        elif user_input=="4":
             return 0
-        elif int(user_input)=="5":
+        elif user_input=="5":
             return 2
         else:
             print('Ingrese una opcion valida')
@@ -134,18 +134,27 @@ def third_menu_am(rate, data, freq, spec, time, im, t, info):
 
 #Filtro de tipo fir low pass
 #Recibe los datos retornados por obtainspectrogram
-def firLowPass(rate, data, t, info):
+def firLowPass(rate, data, t, info, fc):
     #se calcula la frecuencia de nyquist 
     nyq_f = rate*10/2.0
+    cutoff =  nyq_f*0.09
+    print("###########################")
+    print("nyq: ")
+    print(nyq_f)
     #se obtienen los valores que se usaran para filtrar con firwin
-    taps = signal.firwin(numtaps=1001, cutoff=1000/nyq_f, window = 'hamming')
+    print("cutoff: ")
+    print(nyq_f*0.1)
+    print(1000/nyq_f)
+    print("#########")
+    taps = signal.firwin(numtaps=1001, cutoff=cutoff, nyq = nyq_f, window = 'hamming')
+    #taps = signal.firwin(numtaps=1001, cutoff=fc*1.0, nyq = nyq_f, window = 'hamming')
     #se aplica el filtro con lfilter
-    t2 = linspace(0,len(data)/rate,len(data))
+    t2 = linspace(0,len(data)/(rate*10),len(data))
     y = signal.lfilter(taps, 1.0, data)
     #se grafican los tres filtros
-    graph(t2, y, "Tiempo[s]", "Amplitud[db]","Filtro Low-Pass (Hamming) señal demodulada")
-    freq, fourierT = fourier(rate*10, info, data)
-    graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]","Transformada de Fourier: filtro Low-Pass (Hamming) señal demodulada")
+    graph(t2, y, "Tiempo[s]", "Amplitud[db]","Filtro Low-Pass señal demodulada")
+    freq, fourierT = fourier(rate*10, info, y)
+    graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]","Transformada de Fourier: filtro Low-Pass señal demodulada")
 
     #se retornan los valores de las amplitudes
     return y
@@ -166,7 +175,7 @@ def AM_demodulation_menu(fc,  newTime, resultado, beta, data, rate, info):
 			AM_demodulation(data, rate, fc, newTime, beta, info)
 		elif user_input=="2":
 			return 0                        
-		elif int(user_input)=="3":
+		elif user_input=="3":
 			return 2
 		else:
 			print('Ingrese una opcion valida')
@@ -308,21 +317,21 @@ def AM_analog_modulation(rate,data,time, beta,t, info):
     newTime = np.linspace(0,len(data)/(rate), newLen)
     carrier = np.cos(2*np.pi*newTime*fc)*beta
     resultado = carrier*data2
-    #grafico normal
-    graph(t, data, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud (sin resample)")
-    #grafico modulado
-    graph(newTime, resultado, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud Modulado AM analogo al "+title+"(con resample)")
-    #grafico normal fourier sin rsample
+    #grafico normal sin resample
+    #graph(t, data, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud")
+    #grafico modulado con resample
+    #graph(newTime, resultado, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud Modulado AM al "+title)
+    #grafico normal fourier sin resample
     freqO, fourierTO = fourier(rate, info, data)
-    graph(freqO, fourierTO, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia (sin resample)")
+    #graph(freqO, fourierTO, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia datos originales")
     #fourier resample
     freq, fourierT = fourier(rate*10, info, data2)
     #se grafica Frecuencia vs Magnitud
-    graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia (con resample)")
+    #graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia datos originales")
     #grafico fourier modulado
     freq2, fourierT2 = fourier(rate*10, info, resultado)
     #se grafica Frecuencia vs Magnitud
-    graph(freq2, fourierT2, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia Modulado AM analogo al " + title)
+    #graph(freq2, fourierT2, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia Modulado AM al " + title)
     return fc,  newTime, resultado, beta, data2
 
 
@@ -335,7 +344,7 @@ def AM_demodulation(data,rate,fc, newTime, beta, info):
     freq, fourierT = fourier(rate*10, info, resultado)
     #se grafica Frecuencia vs Magnitud
     graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia demodulado AM")
-    firLowPass(rate, resultado, newTime, info)
+    firLowPass(rate, resultado, newTime, info, fc)
     return resultado
 
 
