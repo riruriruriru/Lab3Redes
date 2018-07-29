@@ -281,20 +281,26 @@ def fourier(rate, info, data):
     #se retorna el arreglo de frecuencias y datos de la transformada de fourier
     
     return frq, fourierTransform
-
+    
+#Entradas: datos correspondientes a la señal original
+#Funcionamiento: Realiza una modulacion FM y grafica los resultados en el dominio del tiempo y de las frecuencias
+#Salida nada
 def FM_analog_modulation(rate, data, beta, t, info):
-	#output = np.cos(np.pi*2*fc*t*(beta)+data)
+	#funcion que modula una señal con modulacion analoga FM
 	title = str(beta*100) +"%"
+	#crea un nuevo set de datos llamando a interpolate()
 	data2 = interpolate(t, data, rate, info)
 	newLen = len(data2)
+	#crea un nuevo arreglo tiempo que tenga la misma dimension que el arreglo de datos
 	newTime = np.linspace(0,len(data)/(rate), newLen)
+	#frecuencia moduladora, debe ser mayor a la frecuencia original de muestreo
 	fc = 30000
-	#t2_fm = np.linspace(0,T, 400000*T)
-	#data_fm = np.interp(t2_fm, t1, data)
-	#t3_fm = np.linspace(0, 400000, 400000*T)
+	#se define la portadora de la siguiente forma:
 	carrier = np.sin(2*np.pi*newTime)
 	w = fc*10*newTime
+	#se integra
 	integral = integrate.cumtrapz(data2, newTime, initial=0)
+	#se obtiene la señal modulada
 	resultado = np.cos(np.pi*w + beta*integral*np.pi)
 	#grafico normal
 	graph(t, data, "Tiempo[s]", "Amplitud[db]", "Tiempo vs Amplitud")
@@ -308,22 +314,33 @@ def FM_analog_modulation(rate, data, beta, t, info):
 	freq2, fourierT2 = fourier(rate*10, info, resultado)
 	graph(freq2, fourierT2, "tiempo", "frecuencia", "Transformada de fourier modulacion FM al " +title)
 	return
-	
+#Entradas: datos correspondiente a la señal original
+#Funcionamiento: se crea un nuevo arreglo de tiempo que refleja el muestreo que se quiere lograr, el cual se utiliza
+#para obtener un nuevo arreglo de datos resampleado e interpolado
+#Salidas: arreglo de datos resampleado
 def interpolate(t, data, rate, info):
     interp = interp1d(t,data)
     newTime = np.linspace(0,len(data)/rate,len(data)*10)
     resultado = interp(newTime)
     return resultado
 	
+#Entradas: datos correspondientes a la señal original
+#Funcionamiento: se realiza una modulacion AM analoga, mediante una interpolacion se remuestrea la señal y se grafican los resultados de la modulacion 
+#en el dominio del tiempo y las frecuencias
+#Salidas: datos resampleados y modulados
 def AM_analog_modulation(rate,data,beta,t, info):
     title = str(beta*100) +"%"
     print("RATE: ")
     print(rate)
+    #se interpola para generar un nuevo arreglo de datos
     data2 = interpolate(t, data, rate, info)
     fc=30000
     newLen = len(data2)
+    #segun el largo del nuevo arreglo de datos, se obtiene un nuevo arreglo de tiempo
     newTime = np.linspace(0,len(data)/(rate), newLen)
+    #se calcula la portadora
     carrier = np.cos(2*np.pi*newTime*fc)*beta
+    #se multiplica la portadora con los datos resampleados
     resultado = carrier*data2
     #grafico normal sin resample
     graph(t, data, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud")
@@ -343,8 +360,12 @@ def AM_analog_modulation(rate,data,beta,t, info):
     return fc,  newTime, resultado, beta, data2
 
 
-
+#Entradas: datos correspondientes a la señal modulada y resampleada
+#Funcionamiento: se multiplican los datos modulados por la misma señal portadora que fue aplicada al momento de modular
+#luego se aplica un filtro de paso bajo para finalmente obtener la señal original
+#Salidas: se retornan los datos demodulados
 def AM_demodulation(data,rate,fc, newTime, beta, info):
+	#se multiplica la señal portadora original con los datos modulados
     resultado = data*np.cos(2*np.pi*fc*newTime)/beta
     #grafico demodulado
     graph(newTime, resultado, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud demodulado AM")
@@ -352,6 +373,7 @@ def AM_demodulation(data,rate,fc, newTime, beta, info):
     freq, fourierT = fourier(rate*10, info, resultado)
     #se grafica Frecuencia vs Magnitud
     graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia demodulado AM")
+    #se entregan los datos demodulados a la funcion firLowPass, que se encarga de realizar un filtro paso bajo
     firLowPass(10*rate, resultado, newTime, info, fc)
     return resultado
 
