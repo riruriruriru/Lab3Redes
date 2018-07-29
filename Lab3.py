@@ -4,7 +4,7 @@ from scipy.io.wavfile import read, write
 from scipy.io import wavfile
 from scipy import fft, arange, ifft
 from scipy import signal
-from scipy.fftpack import fftfreq, fftshift
+from scipy.fftpack import fftshift
 from scipy.signal import kaiserord, lfilter, firwin, freqz
 from scipy.interpolate import interp1d
 import scipy.integrate as integrate
@@ -268,13 +268,13 @@ def graph(x, y, labelx, labely, title):
     return
 
 def fourier(rate, info, data):
-    #funcion que transforma los datos obtenidos del archivo de sonidos al dominio de las frecuencias usando la transformada de fourier (rfft)
+     #funcion que transforma los datos obtenidos del archivo de sonidos al dominio de las frecuencias usando la transformada de fourier (rfft)
     timp = len(data)/rate
     large = len(data)
     #utilizando timp, se obtiene el tiempo total del archivo
-    fourierTransform = np.fft.fft(data)
+    fourierTransform = np.fft.fftshift(fft(data))
     k = linspace(-len(fourierTransform)/2, len(fourierTransform)/2, len(fourierTransform))
-    frq = fftshift(k/timp)
+    frq = k/timp
     print('largo de frecuencias ' + str(len(frq))+'largo datos ' + str(len(data)))
     #con k se obtiene un arreglo con tamanio igual al largo de los datos obtenidos con la transformada y se dividen por el tiempo, obteniendo un arreglo de frecuencias
     print(fourierTransform)   
@@ -345,7 +345,7 @@ def AM_analog_modulation(rate,data,beta,t, info):
 
 
 def AM_demodulation(data,rate,fc, newTime, beta, info):
-    resultado = data*np.cos(2*np.pi*fc*newTime)
+    resultado = data*np.cos(2*np.pi*fc*newTime)/beta
     #grafico demodulado
     graph(newTime, resultado, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud demodulado AM")
     #grafico demodulado fourier
