@@ -6,6 +6,7 @@ from scipy import fft, arange, ifft
 from scipy import signal
 from scipy.signal import kaiserord, lfilter, firwin, freqz
 from scipy.interpolate import interp1d
+import scipy.integrate as integrate
 
 import matplotlib.pyplot as plt
 def menu():
@@ -136,24 +137,24 @@ def third_menu_am(rate, data, freq, spec, time, im, t, info):
 #Recibe los datos retornados por obtainspectrogram
 def firLowPass(rate, data, t, info, fc):
     #se calcula la frecuencia de nyquist 
-    nyq_f = rate*10/2.0
+    nyq_f = rate/2.0
     cutoff =  nyq_f*0.09
+    numtaps = 1001
     print("###########################")
     print("nyq: ")
     print(nyq_f)
     #se obtienen los valores que se usaran para filtrar con firwin
     print("cutoff: ")
-    print(nyq_f*0.1)
-    print(1000/nyq_f)
+    print(cutoff/nyq_f)
     print("#########")
-    taps = signal.firwin(numtaps=1001, cutoff=cutoff, nyq = nyq_f, window = 'hamming')
-    #taps = signal.firwin(numtaps=1001, cutoff=fc*1.0, nyq = nyq_f, window = 'hamming')
+    #taps = signal.firwin(numtaps, cutoff=cutoff, nyq = nyq_f, window = 'hamming')
+    taps = signal.firwin(numtaps, 0.9, window = 'hamming')
     #se aplica el filtro con lfilter
-    t2 = linspace(0,len(data)/(rate*10),len(data))
+    t2 = linspace(0,len(data)/(rate),len(data))
     y = signal.lfilter(taps, 1.0, data)
     #se grafican los tres filtros
     graph(t2, y, "Tiempo[s]", "Amplitud[db]","Filtro Low-Pass señal demodulada")
-    freq, fourierT = fourier(rate*10, info, y)
+    freq, fourierT = fourier(rate/10, info, y)
     graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]","Transformada de Fourier: filtro Low-Pass señal demodulada")
 
     #se retornan los valores de las amplitudes
@@ -284,21 +285,36 @@ def fourier(rate, info, data):
     return frq, fourierTransform
 
 def FM_analog_modulation(rate, data, time, beta, t, info):
-	fc = 3000
+	'''fc = 3000
 	fm = 220
 	output = np.cos(np.pi*2*fc*t*(beta)+data)
+	'''
 	title = str(beta*100) +"%"
+	data2 = interpolate(t, data, rate, info)
+	newLen = len(data2)
+	newTime = np.linspace(0,len(data)/(rate), newLen)
+	#t2_fm = np.linspace(0,T, 400000*T)
+	#data_fm = np.interp(t2_fm, t1, data)
+	#t3_fm = np.linspace(0, 400000, 400000*T)
+	A = 1
+	k = 0.15
+	carrier = np.sin(2*np.pi*newTime);
+	w = rate*newTime
+	integral = integrate.cumtrapz(data2, newTime, initial=0)
+	resultado = np.cos(np.pi*w + integral*np.pi);
+	plt.plot(newTime[1000:4000], resultado[1000:4000])
+	plt.show()
 	#grafico normal
 	graph(t, data, "Tiempo[s]", "Amplitud[db]", "Tiempo vs Amplitud")
 	#grafico modulado
-	graph(t, output, "Tiempo[s]", "Amplitud[db]", "Tiempo vs Amplitud Modulado AM al " +title)
+	graph(newTime[1000:4000], resultado[1000:4000], "Tiempo[s]", "Amplitud[db]", "Modulacion FM al " +title)
 	#grafico fourier
-	freq, fourierT = fourier(rate, info, data)
-	graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db] (con resample)", "Frecuencia vs Magnitud de Frecuencia")
+	freq, fourierT = fourier(rate*10, info, data)
+	graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Transformada de Fourier datos originales")
 	#grafico fourier modulado
 	#se grafica Frecuencia vs Magnitud
-	freq2, fourierT2 = fourier(rate, info, output)
-	graph(freq2, fourierT2, "tiempo", "frecuencia", "Frecuencia vs Magnitud de Frecuencia Modulado AM al " +title + "(con resample)")
+	freq2, fourierT2 = fourier(rate*10, info, resultado)
+	graph(freq2, fourierT2, "tiempo", "frecuencia", "Transformada de fourier modulacion FM al " +title)
 	return
 	
 def interpolate(t, data, rate, info):
@@ -317,21 +333,23 @@ def AM_analog_modulation(rate,data,time, beta,t, info):
     newTime = np.linspace(0,len(data)/(rate), newLen)
     carrier = np.cos(2*np.pi*newTime*fc)*beta
     resultado = carrier*data2
+    plt.plot(newTime[1000:2000], resultado[1000:2000])
+    plt.show()
     #grafico normal sin resample
-    #graph(t, data, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud")
+    graph(t, data, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud")
     #grafico modulado con resample
-    #graph(newTime, resultado, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud Modulado AM al "+title)
+    graph(newTime[1000:2000], resultado[1000:2000], "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud Modulado AM al "+title)
     #grafico normal fourier sin resample
     freqO, fourierTO = fourier(rate, info, data)
-    #graph(freqO, fourierTO, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia datos originales")
+    graph(freqO, fourierTO, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia datos originales")
     #fourier resample
     freq, fourierT = fourier(rate*10, info, data2)
     #se grafica Frecuencia vs Magnitud
-    #graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia datos originales")
+    graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia datos originales")
     #grafico fourier modulado
     freq2, fourierT2 = fourier(rate*10, info, resultado)
     #se grafica Frecuencia vs Magnitud
-    #graph(freq2, fourierT2, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia Modulado AM al " + title)
+    graph(freq2, fourierT2, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia Modulado AM al " + title)
     return fc,  newTime, resultado, beta, data2
 
 
@@ -344,7 +362,7 @@ def AM_demodulation(data,rate,fc, newTime, beta, info):
     freq, fourierT = fourier(rate*10, info, resultado)
     #se grafica Frecuencia vs Magnitud
     graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia demodulado AM")
-    firLowPass(rate, resultado, newTime, info, fc)
+    firLowPass(10*rate, resultado, newTime, info, fc)
     return resultado
 
 
