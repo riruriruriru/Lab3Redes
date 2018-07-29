@@ -148,15 +148,14 @@ def firLowPass(rate, data, t, info, fc):
     print(cutoff/nyq_f)
     print("#########")
     #taps = signal.firwin(numtaps, cutoff=cutoff, nyq = nyq_f, window = 'hamming')
-    taps = signal.firwin(numtaps, 0.9, window = 'hamming')
+    taps = signal.firwin(numtaps, 0.3, window = 'hamming')
     #se aplica el filtro con lfilter
     t2 = linspace(0,len(data)/(rate),len(data))
     y = signal.lfilter(taps, 1.0, data)
     #se grafican los tres filtros
-    graph(t2, y, "Tiempo[s]", "Amplitud[db]","Filtro Low-Pass señal demodulada")
+    #graph(t2, y, "Tiempo[s]", "Amplitud[db]","Filtro Low-Pass señal demodulada")
     freq, fourierT = fourier(rate/10, info, y)
     graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]","Transformada de Fourier: filtro Low-Pass señal demodulada")
-
     #se retornan los valores de las amplitudes
     return y
 
@@ -293,8 +292,6 @@ def FM_analog_modulation(rate, data, time, beta, t, info):
 	#t2_fm = np.linspace(0,T, 400000*T)
 	#data_fm = np.interp(t2_fm, t1, data)
 	#t3_fm = np.linspace(0, 400000, 400000*T)
-	A = 1
-	k = 0.15
 	carrier = np.sin(2*np.pi*newTime)
 	w = rate*10*newTime
 	integral = integrate.cumtrapz(data2, newTime, initial=0)
@@ -338,11 +335,11 @@ def AM_analog_modulation(rate,data,time, beta,t, info):
     graph(newTime[1000:2000], resultado[1000:2000], "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud Modulado AM al "+title)
     #grafico normal fourier sin resample
     freqO, fourierTO = fourier(rate, info, data)
-    graph(freqO, fourierTO, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia datos originales")
+    graph(freqO, fourierTO, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Transformada Fourier datos originales")
     #fourier resample
     freq, fourierT = fourier(rate*10, info, data2)
     #se grafica Frecuencia vs Magnitud
-    graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia datos originales")
+    graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Transformada Fourier resampleada")
     #grafico fourier modulado
     freq2, fourierT2 = fourier(rate*10, info, resultado)
     #se grafica Frecuencia vs Magnitud
