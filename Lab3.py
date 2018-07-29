@@ -84,13 +84,13 @@ def third_menu(rate, data, t, info):
         print('5) Salir')
         user_input = input('Ingrese el numero de la opcion que desea ejecutar: ')
         if user_input=="1":
-            FM_analog_modulation(rate, data, time, 0.15, t, info)
+            FM_analog_modulation(rate, data, 0.15, t, info)
             #option = fourth_menu(rate, f_data, f_data2, f_data3, "Low Pass")
         elif user_input=="2":
-            FM_analog_modulation(rate, data, time, 1, t, info)
+            FM_analog_modulation(rate, data, 1, t, info)
             #option = fourth_menu(rate, f_data, f_data2, f_data3, "High Pass")                        
         elif user_input=="3":
-            FM_analog_modulation(rate, data, time, 1.25, t, info)
+            FM_analog_modulation(rate, data, 1.25, t, info)
             #option = fourth_menu(rate, f_data, f_data2, f_data3, "Band Pass")                 
         elif user_input=="4":
             return 0
@@ -170,7 +170,7 @@ def AM_demodulation_menu(fc,  newTime, resultado, beta, data, rate, info):
 		print('3) Salir')
 		user_input = input('Ingrese el numero de la opcion que desea ejecutar: ')
 		if user_input=="1":
-			print("frecuencia portadora: ", fc)
+			print("fc: ", fc)
 			AM_demodulation(resultado, rate, fc, newTime, beta, info)
 		elif user_input=="2":
 			return 0                        
@@ -282,38 +282,36 @@ def fourier(rate, info, data):
     
     return frq, fourierTransform
 
-def FM_analog_modulation(rate, data, time, beta, t, info):
+def FM_analog_modulation(rate, data, beta, t, info):
 	#output = np.cos(np.pi*2*fc*t*(beta)+data)
 	title = str(beta*100) +"%"
 	data2 = interpolate(t, data, rate, info)
 	newLen = len(data2)
 	newTime = np.linspace(0,len(data)/(rate), newLen)
-	fc = 20000
+	fc = 30000
 	#t2_fm = np.linspace(0,T, 400000*T)
 	#data_fm = np.interp(t2_fm, t1, data)
 	#t3_fm = np.linspace(0, 400000, 400000*T)
 	carrier = np.sin(2*np.pi*newTime)
-	w = fc*8*newTime
+	w = fc*10*newTime
 	integral = integrate.cumtrapz(data2, newTime, initial=0)
 	resultado = np.cos(np.pi*w + beta*integral*np.pi)
-	plt.plot(newTime[1000:4000], resultado[1000:4000])
-	plt.show()
 	#grafico normal
 	graph(t, data, "Tiempo[s]", "Amplitud[db]", "Tiempo vs Amplitud")
 	#grafico modulado
 	graph(newTime[1000:4000], resultado[1000:4000], "Tiempo[s]", "Amplitud[db]", "Modulacion FM al " +title)
 	#grafico fourier
-	freq, fourierT = fourier(rate*8, info, data)
+	freq, fourierT = fourier(rate*10, info, data)
 	graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Transformada de Fourier datos originales")
 	#grafico fourier modulado
 	#se grafica Frecuencia vs Magnitud
-	freq2, fourierT2 = fourier(rate*8, info, resultado)
+	freq2, fourierT2 = fourier(rate*10, info, resultado)
 	graph(freq2, fourierT2, "tiempo", "frecuencia", "Transformada de fourier modulacion FM al " +title)
 	return
 	
 def interpolate(t, data, rate, info):
     interp = interp1d(t,data)
-    newTime = np.linspace(0,len(data)/rate,len(data)*8)
+    newTime = np.linspace(0,len(data)/rate,len(data)*10)
     resultado = interp(newTime)
     return resultado
 	
@@ -322,13 +320,11 @@ def AM_analog_modulation(rate,data,beta,t, info):
     print("RATE: ")
     print(rate)
     data2 = interpolate(t, data, rate, info)
-    fc=20000
+    fc=30000
     newLen = len(data2)
     newTime = np.linspace(0,len(data)/(rate), newLen)
     carrier = np.cos(2*np.pi*newTime*fc)*beta
     resultado = carrier*data2
-    plt.plot(newTime[1000:2000], resultado[1000:2000])
-    plt.show()
     #grafico normal sin resample
     graph(t, data, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud")
     #grafico modulado con resample
@@ -337,11 +333,11 @@ def AM_analog_modulation(rate,data,beta,t, info):
     freqO, fourierTO = fourier(rate, info, data)
     graph(freqO, fourierTO, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Transformada Fourier datos originales")
     #fourier resample
-    freq, fourierT = fourier(rate*8, info, data2)
+    freq, fourierT = fourier(rate*10, info, data2)
     #se grafica Frecuencia vs Magnitud
     graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Transformada Fourier resampleada")
     #grafico fourier modulado
-    freq2, fourierT2 = fourier(rate*8, info, resultado)
+    freq2, fourierT2 = fourier(rate*10, info, resultado)
     #se grafica Frecuencia vs Magnitud
     graph(freq2, fourierT2, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia Modulado AM al " + title)
     return fc,  newTime, resultado, beta, data2
@@ -353,10 +349,10 @@ def AM_demodulation(data,rate,fc, newTime, beta, info):
     #grafico demodulado
     graph(newTime, resultado, "Tiempo[s]", "Amplitud [db]", "Tiempo vs Amplitud demodulado AM")
     #grafico demodulado fourier
-    freq, fourierT = fourier(rate*8, info, resultado)
+    freq, fourierT = fourier(rate*10, info, resultado)
     #se grafica Frecuencia vs Magnitud
     graph(freq, fourierT, "Frecuencia[hz]", "Magnitud de Frecuencia[db]", "Frecuencia vs Magnitud de Frecuencia demodulado AM")
-    firLowPass(8*rate, resultado, newTime, info, fc)
+    firLowPass(10*rate, resultado, newTime, info, fc)
     return resultado
 
 
