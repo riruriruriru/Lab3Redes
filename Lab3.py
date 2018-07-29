@@ -285,10 +285,7 @@ def fourier(rate, info, data):
     return frq, fourierTransform
 
 def FM_analog_modulation(rate, data, time, beta, t, info):
-	'''fc = 3000
-	fm = 220
-	output = np.cos(np.pi*2*fc*t*(beta)+data)
-	'''
+	#output = np.cos(np.pi*2*fc*t*(beta)+data)
 	title = str(beta*100) +"%"
 	data2 = interpolate(t, data, rate, info)
 	newLen = len(data2)
@@ -298,10 +295,10 @@ def FM_analog_modulation(rate, data, time, beta, t, info):
 	#t3_fm = np.linspace(0, 400000, 400000*T)
 	A = 1
 	k = 0.15
-	carrier = np.sin(2*np.pi*newTime);
-	w = rate*newTime
+	carrier = np.sin(2*np.pi*newTime)
+	w = rate*10*newTime
 	integral = integrate.cumtrapz(data2, newTime, initial=0)
-	resultado = np.cos(np.pi*w + integral*np.pi);
+	resultado = np.cos(np.pi*w + beta*integral*np.pi)
 	plt.plot(newTime[1000:4000], resultado[1000:4000])
 	plt.show()
 	#grafico normal
